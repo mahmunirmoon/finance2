@@ -20,7 +20,7 @@ export default function Toasts() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="pointer-events-none fixed bottom-4 start-4 z-[70] flex w-[calc(100%-2rem)] max-w-xs flex-col gap-2">
+    <div className="print-hidden pointer-events-none fixed bottom-4 start-4 z-[70] flex w-[calc(100%-2rem)] max-w-xs flex-col gap-2">
       {toasts.map((t) => (
         <div key={t.id} className="animate-fade-up pointer-events-auto flex items-center gap-2.5 rounded-xl bg-ink px-4 py-3 text-sm font-semibold text-paper shadow-pop">
           <ToastIcon tone={t.tone} />

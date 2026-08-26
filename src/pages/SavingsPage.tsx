@@ -136,6 +136,7 @@ export default function SavingsPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
           {goals.map((goal, i) => {
+            if (goal.isEmergency && goal.id === emergencyGoal?.id) return null; // در بنر بالا نمایش داده می‌شود
             const saved = goalSaved(goal, savingsContributions);
             const target = effectiveGoalTarget(goal, goal.currency === family.currency ? avgMonthly : 0);
             const pct = target > 0 ? (saved / target) * 100 : 0;

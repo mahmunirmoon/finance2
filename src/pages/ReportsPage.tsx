@@ -95,7 +95,7 @@ export default function ReportsPage() {
     try {
       const p = jalaliParts(todayISO());
       exportTransactionsCSV(filtered, memberName, accountName, `transactions-${p?.jy ?? ""}-${String(p?.jm ?? "").padStart(2, "0")}.csv`);
-      pushToast("فایل CSV باencoding فارسی دانلود شد");
+      pushToast("فایل CSV با کدگذاری UTF-8 (فارسی) دانلود شد");
     } catch {
       pushToast("خروجی CSV ناموفق بود", "danger");
     }
