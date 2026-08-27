@@ -1,5 +1,6 @@
 # Deploy به GitHub Pages
-# base به‌صورت نسبی (--base=./) بیلد می‌شود تا مسیر Assetها برای Pages درست باشد.
+# base در vite.config.js روی "./" تنظیم شده (مسیرهای نسبی — سازگار با زیردامنه /finance2/).
+# استراتژی base فقط در vite.config.js تعریف می‌شود تا تداخلی پیش نیاید.
 name: Deploy to GitHub Pages
 
 on:
@@ -32,9 +33,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      # بیلد production با مسیرهای نسبی — خروجی در dist/
+      # بیلد production — base از vite.config.js خوانده می‌شود (مسیرهای نسبی)؛ خروجی در dist/
       - name: Build
-        run: npm run build -- --base=./
+        run: npm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
