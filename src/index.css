@@ -83,42 +83,49 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 }
 .print-area { display: none; }
 
-/* ── Modal: ساختار سه‌بخشی با اسکرول واقعی ─────────────────────────
-   Header و Footer ثابت‌اند (flex-shrink:0)؛ فقط Body اسکرول می‌شود.
-   ارتفاع پوسته هرگز از viewport بیشتر نمی‌شود (dvh با fallback به vh).
-   این قوانین به‌صورت CSS دستی نوشته شده‌اند تا مستقل از خروجی
-   utility-های Tailwind، همیشه اعمال شوند. */
+/* ── Modal: استراتژی «خود Overlay اسکرول می‌کند» ───────────────────
+   فقط یک ظرف اسکرول عمودی وجود دارد: خودِ .modal-overlay.
+   محتوای Modal ارتفاع طبیعیِ کامل خود را دارد؛ اگر بلندتر از
+   viewport باشد، Overlay اسکرول می‌شود. هیچ اسکرول داخلیِ تو در تو،
+   هیچ max-height و هیچ overflow:hidden روی Overlay وجود ندارد. */
 .modal-overlay {
   position: fixed;
   inset: 0;
   z-index: 50;
-  display: flex;
-  align-items: flex-end; /* موبایل: bottom-sheet */
-  justify-content: center;
-  overflow: hidden; /* هیچ بخشی از Modal از viewport بیرون نزند */
-  padding: 0;
+  overflow-y: auto;            /* تنها ظرف اسکرول عمودی */
+  overflow-x: hidden;          /* بدون اسکرول‌بار افقی */
+  overscroll-behavior: contain;/* اسکرول به صفحه پشت سرایت نکند */
+  -webkit-overflow-scrolling: touch;
+  padding: 16px;
 }
-@media (min-width: 640px) {
-  .modal-overlay { align-items: center; padding: 24px; }
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: rgb(27 42 36 / 0.45);
+}
+.modal-positioner {
+  position: relative;
+  z-index: 1;
+  min-height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;     /* دسترسی کامل فرم مهم‌تر از وسط‌چینی است */
 }
 .modal-shell {
   position: relative;
-  display: flex;
-  flex-direction: column;
   width: 100%;
-  max-height: 90vh; /* fallback برای مرورگرهای قدیمی */
-  max-height: 90dvh; /* بدون احتساب نوار ابزار موبایل */
-  overflow: hidden;
+  margin: auto;                /* اگر جا بود وسط، اگر بلند بود از بالا (قابل اسکرول) */
   background: var(--color-surface);
+  border-radius: 16px;
+  overflow: visible;           /* dropdown/popover هرگز بریده نشود */
+  box-sizing: border-box;
 }
 .modal-head,
 .modal-foot {
-  flex: 0 0 auto; /* هرگز فشرده نمی‌شوند */
+  /* فرزندان عادیِ block — همراه کل Modal اسکرول می‌شوند */
 }
 .modal-body {
-  flex: 1 1 auto;
-  min-height: 0; /* کلید اسکرول در چیدمان flex-column */
-  overflow-y: auto;
-  overscroll-behavior: contain; /* اسکرول به صفحه پشت سرایت نکند */
-  -webkit-overflow-scrolling: touch;
+  padding: 20px;
+  /* ارتفاع طبیعی — اسکرول داخلی ندارد */
 }
