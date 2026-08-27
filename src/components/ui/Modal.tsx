@@ -36,33 +36,42 @@ export default function Modal({ open, onClose, title, subtitle, children, footer
   if (!open) return null;
 
   return (
+    /* تنها ظرف اسکرول عمودی، خودِ Overlay است — محتوای Modal ارتفاع طبیعی دارد */
     <div className="modal-overlay">
-      <div className="animate-fade-in absolute inset-0 bg-ink/45" onClick={onClose} aria-hidden="true" />
+      <div className="modal-backdrop animate-fade-in" aria-hidden="true" />
       <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        className={`modal-shell animate-scale-in rounded-t-2xl shadow-pop sm:rounded-xl ${
-          size === "lg" ? "max-w-2xl" : "max-w-md"
-        }`}
+        className="modal-positioner"
+        onClick={(e) => {
+          /* کلیک روی فضای خالیِ اطراف Modal → بستن؛ کلیک روی خود Modal نه */
+          if (e.target === e.currentTarget) onClose();
+        }}
       >
-        {title && (
-          <div className="modal-head flex items-start justify-between gap-3 border-b border-line px-5 py-4">
-            <div className="min-w-0">
-              <h3 className="text-base font-extrabold text-ink">{title}</h3>
-              {subtitle && <p className="mt-0.5 text-xs leading-5 text-mute">{subtitle}</p>}
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={title}
+          className={`modal-shell animate-scale-in shadow-pop ${
+            size === "lg" ? "max-w-2xl" : "max-w-md"
+          }`}
+        >
+          {title && (
+            <div className="modal-head flex items-start justify-between gap-3 border-b border-line px-5 py-4">
+              <div className="min-w-0">
+                <h3 className="text-base font-extrabold text-ink">{title}</h3>
+                {subtitle && <p className="mt-0.5 text-xs leading-5 text-mute">{subtitle}</p>}
+              </div>
+              <button
+                onClick={onClose}
+                className="shrink-0 rounded-lg p-2 text-mute transition hover:bg-paper hover:text-ink"
+                aria-label="بستن"
+              >
+                <X size={18} />
+              </button>
             </div>
-            <button
-              onClick={onClose}
-              className="shrink-0 rounded-lg p-2 text-mute transition hover:bg-paper hover:text-ink"
-              aria-label="بستن"
-            >
-              <X size={18} />
-            </button>
-          </div>
-        )}
-        <div className="modal-body p-5">{children}</div>
-        {footer && <div className="modal-foot border-t border-line px-5 py-3.5">{footer}</div>}
+          )}
+          <div className="modal-body">{children}</div>
+          {footer && <div className="modal-foot border-t border-line px-5 py-3.5">{footer}</div>}
+        </div>
       </div>
     </div>
   );
