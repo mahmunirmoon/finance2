@@ -82,3 +82,43 @@ input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
   * { box-shadow: none !important; }
 }
 .print-area { display: none; }
+
+/* ── Modal: ساختار سه‌بخشی با اسکرول واقعی ─────────────────────────
+   Header و Footer ثابت‌اند (flex-shrink:0)؛ فقط Body اسکرول می‌شود.
+   ارتفاع پوسته هرگز از viewport بیشتر نمی‌شود (dvh با fallback به vh).
+   این قوانین به‌صورت CSS دستی نوشته شده‌اند تا مستقل از خروجی
+   utility-های Tailwind، همیشه اعمال شوند. */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: flex-end; /* موبایل: bottom-sheet */
+  justify-content: center;
+  overflow: hidden; /* هیچ بخشی از Modal از viewport بیرون نزند */
+  padding: 0;
+}
+@media (min-width: 640px) {
+  .modal-overlay { align-items: center; padding: 24px; }
+}
+.modal-shell {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: 90vh; /* fallback برای مرورگرهای قدیمی */
+  max-height: 90dvh; /* بدون احتساب نوار ابزار موبایل */
+  overflow: hidden;
+  background: var(--color-surface);
+}
+.modal-head,
+.modal-foot {
+  flex: 0 0 auto; /* هرگز فشرده نمی‌شوند */
+}
+.modal-body {
+  flex: 1 1 auto;
+  min-height: 0; /* کلید اسکرول در چیدمان flex-column */
+  overflow-y: auto;
+  overscroll-behavior: contain; /* اسکرول به صفحه پشت سرایت نکند */
+  -webkit-overflow-scrolling: touch;
+}
