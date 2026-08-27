@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import type { ReactNode } from "react";
+import type { MouseEvent, ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { AlertTriangle, X } from "lucide-react";
 
 interface ModalProps {
@@ -8,15 +9,19 @@ interface ModalProps {
   title?: string;
   subtitle?: string;
   children: ReactNode;
-  /** نوار اکشن ثابت در پایین Modal — همراه محتوا اسکرول نمی‌شود */
+  /** نوار اکشن پایین Modal — همراه کل محتوا اسکرول می‌شود */
   footer?: ReactNode;
   size?: "md" | "lg";
 }
 
 /**
- * Modal سه‌بخشی:
- * Header ثابت ← محتوای اسکرول‌شونده ← Footer ثابت (اختیاری)
- * ارتفاع هرگز از viewport بیرون نمی‌زند و صفحه پشت Modal اسکرول نمی‌شود.
+ * Modal با React Portal مستقیم به document.body.
+ *
+ * چرا Portal؟ چون رندر داخل درختِ معمولی React (زیر AppShell و لایه‌های
+ * animate/transform/overflow) می‌تواند رفتارِ position:fixed و اسکرول را
+ * خراب کند. با Portal، Modal از همهٔ آن زمینه‌ها خارج می‌شود و تنها ظرفِ
+ * اسکرول عمودی، خودِ .modal-overlay است. بدنهٔ Modal ارتفاعِ طبیعیِ کامل
+ * خود را دارد؛ اگر بلندتر از viewport باشد، Overlay اسکرول می‌شود.
  */
 export default function Modal({ open, onClose, title, subtitle, children, footer, size = "md" }: ModalProps) {
   useEffect(() => {
@@ -25,6 +30,7 @@ export default function Modal({ open, onClose, title, subtitle, children, footer
       if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
+    /* قفل اسکرولِ صفحهٔ پشت — بدون حذف اسکرولِ خودِ Overlay (ظرف جدا) */
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
@@ -35,27 +41,24 @@ export default function Modal({ open, onClose, title, subtitle, children, footer
 
   if (!open) return null;
 
-  return (
-    /* تنها ظرف اسکرول عمودی، خودِ Overlay است — محتوای Modal ارتفاع طبیعی دارد */
-    <div className="modal-overlay">
-      <div className="modal-backdrop animate-fade-in" aria-hidden="true" />
-      <div
-        className="modal-positioner"
-        onClick={(e) => {
-          /* کلیک روی فضای خالیِ اطراف Modal → بستن؛ کلیک روی خود Modal نه */
-          if (e.target === e.currentTarget) onClose();
-        }}
-      >
+  /* کلیک روی فضای خالی (Overlay/Positioner) → بستن؛ کلیک داخل پوسته نه */
+  const handleOverlayClick = (e: MouseEvent<HTMLDivElement>) => {
+    if (!(e.target as HTMLElement).closest(".modal-shell")) onClose();
+  };
+
+  return createPortal(
+    <div className="modal-overlay" onClick={handleOverlayClick}>
+      <div className="modal-positioner">
         <div
           role="dialog"
           aria-modal="true"
           aria-label={title}
           className={`modal-shell animate-scale-in shadow-pop ${
-            size === "lg" ? "max-w-2xl" : "max-w-md"
+            size === "lg" ? "modal-shell--lg" : "modal-shell--md"
           }`}
         >
           {title && (
-            <div className="modal-head flex items-start justify-between gap-3 border-b border-line px-5 py-4">
+            <div className="modal-head">
               <div className="min-w-0">
                 <h3 className="text-base font-extrabold text-ink">{title}</h3>
                 {subtitle && <p className="mt-0.5 text-xs leading-5 text-mute">{subtitle}</p>}
@@ -70,10 +73,11 @@ export default function Modal({ open, onClose, title, subtitle, children, footer
             </div>
           )}
           <div className="modal-body">{children}</div>
-          {footer && <div className="modal-foot border-t border-line px-5 py-3.5">{footer}</div>}
+          {footer && <div className="modal-foot">{footer}</div>}
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
