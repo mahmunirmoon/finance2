@@ -107,7 +107,24 @@ export default function TransactionFormModal({ open, editing, onClose }: Transac
 
   if (!family) return null;
 
+  /** سلکت حساب — اگر هنوز حسابی ساخته نشده باشد، پیام راهنما نمایش داده می‌شود */
+  const renderAccountSelect = (id: string, value: string, onChange: (v: string) => void) =>
+    activeAccounts.length === 0 ? (
+      <p className="rounded-xl border border-dashed border-saffron-300 bg-saffron-50 px-3.5 py-3 text-xs font-extrabold leading-5 text-saffron-700">
+        ابتدا یک حساب مالی ایجاد کنید.
+      </p>
+    ) : (
+      <select id={id} value={value} onChange={(e) => onChange(e.target.value)} className={inputCls}>
+        {activeAccounts.map((a) => (
+          <option key={a.id} value={a.id}>
+            {a.name} ({getCurrency(a.currency).short})
+          </option>
+        ))}
+      </select>
+    );
+
   const save = () => {
+    if (activeAccounts.length === 0) return setError("ابتدا یک حساب مالی ایجاد کنید.");
     if (!amount || amount <= 0) return setError("مبلغ باید عددی بزرگ‌تر از صفر باشد.");
     if (!date) return setError("تاریخ الزامی است.");
 
@@ -173,6 +190,22 @@ export default function TransactionFormModal({ open, editing, onClose }: Transac
       title={editing ? "ویرایش تراکنش" : "ثبت تراکنش"}
       subtitle={account ? `حساب: ${account.name} · ارز: ${getCurrency(account.currency).short}` : undefined}
       size="lg"
+      footer={
+        <div className="flex justify-end gap-2">
+          <button onClick={onClose} className="rounded-lg border border-line bg-surface px-4 py-2.5 text-sm font-bold text-ink-soft transition hover:bg-paper active:scale-[0.98]">
+            انصراف
+          </button>
+          <button
+            onClick={save}
+            className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold text-white shadow-card transition active:scale-[0.98] ${
+              type === "income" ? "bg-success hover:brightness-95" : type === "expense" ? "bg-danger hover:brightness-95" : "bg-pine-600 hover:bg-pine-700"
+            }`}
+          >
+            <Check size={15} strokeWidth={3} />
+            {editing ? "ذخیره تغییرات" : `ثبت ${TYPE_META[type].label}`}
+          </button>
+        </div>
+      }
     >
       <div className="space-y-4">
         <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="نوع تراکنش">
@@ -230,19 +263,11 @@ export default function TransactionFormModal({ open, editing, onClose }: Transac
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="tx-from" className={labelCls}>از حساب</label>
-              <select id="tx-from" value={accountId} onChange={(e) => { setAccountId(e.target.value); setError(null); }} className={inputCls}>
-                {activeAccounts.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name} ({getCurrency(a.currency).short})</option>
-                ))}
-              </select>
+              {renderAccountSelect("tx-from", accountId, (v) => { setAccountId(v); setError(null); })}
             </div>
             <div>
               <label htmlFor="tx-to" className={labelCls}>به حساب</label>
-              <select id="tx-to" value={destAccountId} onChange={(e) => { setDestAccountId(e.target.value); setError(null); }} className={inputCls}>
-                {activeAccounts.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name} ({getCurrency(a.currency).short})</option>
-                ))}
-              </select>
+              {renderAccountSelect("tx-to", destAccountId, (v) => { setDestAccountId(v); setError(null); })}
             </div>
             {currencyMismatch && (
               <p className="col-span-2 rounded-lg bg-saffron-50 px-3 py-2 text-xs font-bold text-saffron-700">
@@ -256,11 +281,7 @@ export default function TransactionFormModal({ open, editing, onClose }: Transac
               <label htmlFor="tx-account" className={labelCls}>
                 {type === "income" ? "حساب مقصد (دریافت‌کننده)" : "حساب پرداخت‌کننده"}
               </label>
-              <select id="tx-account" value={accountId} onChange={(e) => { setAccountId(e.target.value); setError(null); }} className={inputCls}>
-                {activeAccounts.map((a) => (
-                  <option key={a.id} value={a.id}>{a.name} ({getCurrency(a.currency).short})</option>
-                ))}
-              </select>
+              {renderAccountSelect("tx-account", accountId, (v) => { setAccountId(v); setError(null); })}
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -300,14 +321,6 @@ export default function TransactionFormModal({ open, editing, onClose }: Transac
         </div>
 
         {error && <p className="rounded-lg bg-danger-soft px-3 py-2 text-xs font-bold text-danger">{error}</p>}
-
-        <div className="flex justify-end gap-2 border-t border-line pt-4">
-          <button onClick={onClose} className="rounded-lg border border-line bg-surface px-4 py-2.5 text-sm font-bold text-ink-soft transition hover:bg-paper">انصراف</button>
-          <button onClick={save} className={`inline-flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-bold text-white shadow-card transition active:scale-[0.98] ${type === "income" ? "bg-success hover:brightness-95" : type === "expense" ? "bg-danger hover:brightness-95" : "bg-pine-600 hover:bg-pine-700"}`}>
-            <Check size={15} strokeWidth={3} />
-            {editing ? "ذخیره تغییرات" : `ثبت ${TYPE_META[type].label}`}
-          </button>
-        </div>
       </div>
     </Modal>
   );
