@@ -1,0 +1,139 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Vazirmatn", "Segoe UI", Tahoma, sans-serif;
+  --font-display: "Lalezar", "Vazirmatn", serif;
+
+  --color-paper: #f3f5f1;
+  --color-surface: #ffffff;
+  --color-ink: #1b2a24;
+  --color-ink-soft: #3f534a;
+  --color-mute: #74867c;
+  --color-line: #e2e8e1;
+  --color-line-strong: #c7d3c9;
+
+  --color-pine-50: #edf4f1;
+  --color-pine-100: #dcebe5;
+  --color-pine-200: #b9d6cb;
+  --color-pine-300: #8bbbad;
+  --color-pine-400: #57998a;
+  --color-pine-500: #2e7d6b;
+  --color-pine-600: #146855;
+  --color-pine-700: #0f5545;
+  --color-pine-800: #0e4437;
+  --color-pine-900: #0c362c;
+
+  --color-saffron-50: #fdf6e7;
+  --color-saffron-100: #f9ead0;
+  --color-saffron-200: #f2d79e;
+  --color-saffron-300: #e9c06a;
+  --color-saffron-400: #e3a93f;
+  --color-saffron-500: #d18a1f;
+  --color-saffron-600: #b26e14;
+  --color-saffron-700: #8c5512;
+
+  --color-danger: #bf4638;
+  --color-danger-soft: #fbeeec;
+  --color-success: #2f8f5f;
+  --color-success-soft: #e9f5ee;
+
+  --animate-fade-in: fade-in 0.35s ease both;
+  --animate-fade-up: fade-up 0.55s cubic-bezier(0.22, 0.8, 0.36, 1) both;
+  --animate-scale-in: scale-in 0.28s cubic-bezier(0.22, 0.8, 0.36, 1) both;
+  --animate-float: float 5.5s ease-in-out infinite;
+  --animate-float-slow: float 7.5s ease-in-out infinite reverse;
+  --animate-grow-bar: grow-bar 0.9s cubic-bezier(0.22, 0.8, 0.36, 1) both;
+
+  --shadow-card: 0 1px 2px rgb(27 42 36 / 0.05), 0 4px 16px -6px rgb(27 42 36 / 0.1);
+  --shadow-pop: 0 10px 34px -10px rgb(27 42 36 / 0.28);
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-up { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes scale-in { from { opacity: 0; transform: scale(0.96) translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+@keyframes grow-bar { from { width: 0; } }
+
+html { font-family: var(--font-sans); }
+body {
+  margin: 0;
+  background-color: var(--color-paper);
+  color: var(--color-ink);
+  -webkit-font-smoothing: antialiased;
+}
+::selection { background: var(--color-pine-200); }
+* { scrollbar-width: thin; scrollbar-color: var(--color-line-strong) transparent; }
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+
+/* الگوی گره‌چینی ظریف */
+.bg-girih {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='56' viewBox='0 0 56 56'%3E%3Cg fill='none' stroke='%231b2a24' stroke-opacity='0.05' stroke-width='1'%3E%3Cpath d='M28 2 54 28 28 54 2 28Z'/%3E%3Cpath d='M28 14 42 28 28 42 14 28Z'/%3E%3Ccircle cx='28' cy='28' r='3.5'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 56px 56px;
+}
+
+/* ── چاپ گزارش (PDF) ── */
+@page { size: A4; margin: 12mm; }
+@media print {
+  body { background: #fff !important; }
+  .print-hidden { display: none !important; }
+  .print-area { display: block !important; }
+  * { box-shadow: none !important; }
+}
+.print-area { display: none; }
+
+/* ── Modal: رندر با React Portal به document.body ──────────────────
+   Modal از درخت AppShell (و هر ancestor دارای transform/overflow)
+   خارج می‌شود تا position:fixed و اسکرول قطعاً درست کار کنند.
+   تنها ظرف اسکرول عمودی، خودِ .modal-overlay است؛ پوسته ارتفاعِ
+   طبیعیِ کامل دارد (بدون max-height، بدون اسکرول داخلی). */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  overflow-y: scroll;          /* ظرف اسکرول تضمین‌شده — همیشه اسکرول‌پذیر */
+  overflow-x: hidden;          /* بدون اسکرول‌بار افقی */
+  overscroll-behavior: contain;/* اسکرول به صفحهٔ پشت سرایت نکند */
+  -webkit-overflow-scrolling: touch;
+  background: rgb(27 42 36 / 0.45);
+  padding: 24px 16px;
+}
+.modal-positioner {
+  width: 100%;
+  min-height: calc(100vh - 48px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;     /* شروع از بالا با حاشیهٔ امن — هرگز بریده نمی‌شود */
+}
+.modal-shell {
+  width: min(100%, 720px);
+  margin: 0 auto;
+  background: var(--color-surface);
+  border-radius: 16px;
+  position: relative;
+  overflow: visible;           /* dropdown/popover هرگز بریده نشود */
+  box-sizing: border-box;
+  max-width: 100%;
+  min-width: 0;
+}
+.modal-shell--md { width: min(100%, 28rem); }
+.modal-shell--lg { width: min(100%, 42rem); }
+.modal-shell * { box-sizing: border-box; max-width: 100%; }
+.modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--color-line);
+  padding: 20px;
+}
+.modal-body {
+  padding: 20px;
+  min-width: 0;
+  /* ارتفاع طبیعی — اسکرول داخلی ندارد؛ همراه Overlay اسکرول می‌شود */
+}
+.modal-foot {
+  border-top: 1px solid var(--color-line);
+  padding: 14px 20px;
+}
