@@ -53,21 +53,6 @@ function SidebarContent({ page, onNavigate }: { page: PageId; onNavigate: (p: Pa
           </div>
         ))}
       </nav>
-
-      <div className="p-3">
-        <div className="rounded-xl bg-pine-800 p-4 text-pine-50">
-          <div className="flex items-center justify-between text-[11px] font-bold">
-            <span>مأموریت ۵ از ۵</span>
-            <span className="text-saffron-300">۱۰۰٪</span>
-          </div>
-          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-pine-700">
-            <div className="h-full w-full rounded-full bg-saffron-400" />
-          </div>
-          <p className="mt-2 text-[10px] leading-4 text-pine-200">
-            محصول کامل — گزارش‌ها، نمودارها، خروجی و پشتیبان‌گیری فعال است.
-          </p>
-        </div>
-      </div>
     </div>
   );
 }

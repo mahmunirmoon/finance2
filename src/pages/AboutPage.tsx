@@ -1,4 +1,4 @@
-import { Check, Database, Flag, Layers, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { Check, Code2, Database, Flag, GraduationCap, HeartHandshake, Layers, MapPin, ShieldCheck, Sparkles, Users } from "lucide-react";
 import Logo from "../layout/Logo";
 import { faNum } from "../utils/format";
 
@@ -40,6 +40,52 @@ export default function AboutPage() {
           </div>
         </div>
       </div>
+
+      {/* درباره ما — طراحی و برنامه‌نویسی */}
+      <section
+        className="animate-fade-up relative overflow-hidden rounded-2xl bg-pine-800 text-pine-50 shadow-pop"
+        style={{ animationDelay: "40ms" }}
+        aria-label="درباره ما"
+      >
+        <div className="pointer-events-none absolute -end-16 -top-16 h-48 w-48 rounded-full bg-pine-700/70" aria-hidden="true" />
+        <div className="pointer-events-none absolute -bottom-20 -start-10 h-40 w-40 rounded-full bg-pine-700/50" aria-hidden="true" />
+        <div className="relative grid gap-6 p-6 sm:p-7 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+          <div>
+            <p className="flex items-center gap-2 text-[11px] font-black text-saffron-300">
+              <Code2 size={14} />
+              درباره ما · طراحی و برنامه‌نویسی
+            </p>
+            <h2 className="font-display mt-2.5 text-3xl leading-tight text-white sm:text-4xl">
+              آقای نریمان مبارک
+            </h2>
+            <p className="mt-2 max-w-md text-[13px] font-semibold leading-6 text-pine-100/90">
+              این برنامه وب‌اپ توسط ایشان، از آبادان و از دانشجویان سرکار خانم دکتر آقایی،
+              طراحی و برنامه‌نویسی شده است.
+            </p>
+            <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] font-extrabold text-pine-200">
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin size={13} className="text-saffron-300" />
+                آبادان
+              </span>
+              <span className="inline-flex items-center gap-1.5">
+                <GraduationCap size={13} className="text-saffron-300" />
+                از دانشجویان سرکار خانم دکتر آقایی
+              </span>
+            </div>
+          </div>
+          <div className="rounded-xl border border-pine-600/60 bg-pine-900/60 px-5 py-4">
+            <p className="flex items-start gap-2.5 text-[13px] font-bold leading-7 text-pine-100">
+              <HeartHandshake size={19} className="mt-1 shrink-0 text-saffron-300" />
+              <span>
+                با تشکر فراوان از{" "}
+                <span className="text-saffron-300">خانم دکتر ماه منیر آقایی</span>{" "}
+                و آموزش‌های خوب و کاربردی ایشان.
+              </span>
+            </p>
+          </div>
+        </div>
+        <div className="relative h-1 w-full bg-gradient-to-l from-saffron-400 via-pine-400 to-pine-700" aria-hidden="true" />
+      </section>
 
       <div className="grid gap-5 lg:grid-cols-2">
         <section className="animate-fade-up rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6" style={{ animationDelay: "80ms" }}>
