@@ -18,6 +18,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { id: "dashboard", label: "داشبورد", icon: LayoutDashboard },
       { id: "transactions", label: "تراکنش‌ها", icon: ArrowLeftRight },
       { id: "accounts", label: "حساب‌ها", icon: Wallet },
+      { id: "about", label: "درباره سازنده", icon: Info },
     ],
   },
   {
@@ -40,7 +41,6 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: "members", label: "اعضای خانواده", icon: Users },
       { id: "settings", label: "تنظیمات خانواده", icon: Settings },
-      { id: "about", label: "درباره برنامه", icon: Info },
     ],
   },
 ];
