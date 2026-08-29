@@ -82,8 +82,9 @@ export default function AboutPage() {
                 و آموزش‌های خوب و کاربردی ایشان.
               </span>
             </p>
-            <p className="mt-3 flex items-center gap-2.5 border-t border-pine-700/60 pt-3 text-[13px] font-bold text-pine-100">
+            <p className="mt-3 flex flex-wrap items-center gap-x-2.5 gap-y-1 border-t border-pine-700/60 pt-3 text-[13px] font-bold text-pine-100">
               <Phone size={15} className="shrink-0 text-saffron-300" />
+              <span className="text-saffron-300">شماره تماس استاد:</span>
               <span dir="ltr" className="tracking-wider">۰۰۹۷۱ ۵۵۱ ۵۴۴ ۹۸۸</span>
             </p>
           </div>
