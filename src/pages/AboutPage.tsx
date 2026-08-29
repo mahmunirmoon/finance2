@@ -1,4 +1,4 @@
-import { Check, Code2, Database, Flag, GraduationCap, HeartHandshake, Layers, MapPin, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { Check, Code2, Database, Flag, GraduationCap, HeartHandshake, Layers, MapPin, Phone, ShieldCheck, Sparkles, Users } from "lucide-react";
 import Logo from "../layout/Logo";
 import { faNum } from "../utils/format";
 
@@ -81,6 +81,10 @@ export default function AboutPage() {
                 <span className="text-saffron-300">خانم دکتر ماه منیر آقایی</span>{" "}
                 و آموزش‌های خوب و کاربردی ایشان.
               </span>
+            </p>
+            <p className="mt-3 flex items-center gap-2.5 border-t border-pine-700/60 pt-3 text-[13px] font-bold text-pine-100">
+              <Phone size={15} className="shrink-0 text-saffron-300" />
+              <span dir="ltr" className="tracking-wider">۰۰۹۷۱ ۵۵۱ ۵۴۴ ۹۸۸</span>
             </p>
           </div>
         </div>
