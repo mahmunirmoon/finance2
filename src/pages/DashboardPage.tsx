@@ -19,6 +19,9 @@ import {
   getUpcomingFinancialCommitments, goalSaved, groupCommitments, sumByCurrency,
 } from "../utils/planning";
 import { getMonthlySeries, getCategoryBreakdown } from "../utils/reports";
+import { generateInsights, hasEnoughData } from "../utils/insights";
+import SmartAssistantCard from "../components/assistant/SmartAssistantCard";
+import SmartAssistantModal from "../components/assistant/SmartAssistantModal";
 import { faNum, formatDate, formatJalali, formatMoney, formatSignedMoney, todayISO } from "../utils/format";
 import type { FamilyMember, PageId } from "../types";
 
@@ -37,6 +40,7 @@ export default function DashboardPage({ onNavigate, onQuickExpense, onNewTransac
   const planning = usePlanning();
   const [profileId, setProfileId] = useState<string | null>(null);
   const [editMember, setEditMember] = useState<FamilyMember | null>(null);
+  const [assistantOpen, setAssistantOpen] = useState(false);
 
   const baseCurrency = family?.currency ?? "toman";
 
@@ -86,6 +90,42 @@ export default function DashboardPage({ onNavigate, onQuickExpense, onNewTransac
       debtRemaining, activePlans, goals, emergency, avgMonthly, latest,
     };
   }, [accounts, transactions, balances, monthTx, baseCurrency, planning]);
+
+  /* هوش کمکی — Insightهای محلی از داده‌های واقعی (بدون API) */
+  const insights = useMemo(() => {
+    if (!family) return [];
+    return generateInsights({
+      family,
+      transactions,
+      budgets: planning.budgets,
+      debts: planning.debts,
+      receivables: planning.receivables,
+      installmentPlans: planning.installmentPlans,
+      installmentItems: planning.installmentItems,
+      recurringPayments: planning.recurringPayments,
+      financialPlans: planning.financialPlans,
+      financialPlanItems: planning.financialPlanItems,
+      savingsGoals: planning.savingsGoals,
+      savingsContributions: planning.savingsContributions,
+    });
+  }, [family, transactions, planning]);
+
+  const assistantHasData = family
+    ? hasEnoughData({
+        family,
+        transactions,
+        budgets: planning.budgets,
+        debts: planning.debts,
+        receivables: planning.receivables,
+        installmentPlans: planning.installmentPlans,
+        installmentItems: planning.installmentItems,
+        recurringPayments: planning.recurringPayments,
+        financialPlans: planning.financialPlans,
+        financialPlanItems: planning.financialPlanItems,
+        savingsGoals: planning.savingsGoals,
+        savingsContributions: planning.savingsContributions,
+      })
+    : false;
 
   if (!family) return null;
 
@@ -205,7 +245,7 @@ export default function DashboardPage({ onNavigate, onQuickExpense, onNewTransac
         <DashboardCharts series={data.series} categories={data.categories} currency={baseCurrency} />
       </Suspense>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-3">
         {/* ۴ — تعهدات آینده */}
         <section className="animate-fade-up rounded-2xl border border-line bg-surface p-5 shadow-card">
           <div className="mb-4 flex items-center justify-between">
@@ -280,6 +320,9 @@ export default function DashboardPage({ onNavigate, onQuickExpense, onNewTransac
             </div>
           )}
         </section>
+
+        {/* ۵ب — هوش کمکی */}
+        <SmartAssistantCard insights={insights} hasData={assistantHasData} onOpen={() => setAssistantOpen(true)} />
       </div>
 
       {/* ۶ — پس‌انداز */}
@@ -389,6 +432,12 @@ export default function DashboardPage({ onNavigate, onQuickExpense, onNewTransac
         }}
       />
       <MemberFormModal open={editMember !== null} member={editMember} onClose={() => setEditMember(null)} />
+      <SmartAssistantModal
+        open={assistantOpen}
+        onClose={() => setAssistantOpen(false)}
+        insights={insights}
+        hasData={assistantHasData}
+      />
 
       <p className="flex items-center gap-1.5 pb-2 text-[10px] font-bold text-mute">
         <Landmark size={11} />
