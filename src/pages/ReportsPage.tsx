@@ -98,16 +98,18 @@ export default function ReportsPage() {
   const currencyShort = getCurrency(filter.currency).short;
   const selCls = "rounded-lg border border-line bg-surface px-3 py-2 text-xs font-bold text-ink-soft transition focus:border-pine-500 focus:outline-none";
 
+  /* خروجی CSV — فقط گزارش فیلترشده (بازه/عضو/حساب/دسته/نوع/ارز فعلی) */
   const doCSV = () => {
     try {
       const p = jalaliParts(todayISO());
       exportTransactionsCSV(filtered, memberName, accountName, `transactions-${p?.jy ?? ""}-${String(p?.jm ?? "").padStart(2, "0")}.csv`);
-      pushToast("فایل CSV با کدگذاری UTF-8 (فارسی) دانلود شد");
+      pushToast(`خروجی گزارش فیلترشده (${faNum(filtered.length)} تراکنش) با کدگذاری UTF-8 دانلود شد`);
     } catch {
       pushToast("خروجی CSV ناموفق بود", "danger");
     }
   };
 
+  /* خروجی Excel — کامل اطلاعات (همه داده‌های ذخیره‌شده، ۱۴ برگه) */
   const doExcel = async () => {
     setExporting(true);
     try {
@@ -115,11 +117,12 @@ export default function ReportsPage() {
         family, accounts, transactions,
         budgets: planning.budgets, debts: planning.debts, receivables: planning.receivables,
         installmentPlans: planning.installmentPlans, installmentItems: planning.installmentItems,
+        recurringPayments: planning.recurringPayments,
         financialPlans: planning.financialPlans, financialPlanItems: planning.financialPlanItems,
         savingsGoals: planning.savingsGoals, savingsContributions: planning.savingsContributions,
         fileName: `family-finance-${annualYear.toLocaleString("fa-IR")}.xlsx`,
       });
-      pushToast("فایل Excel با ۹ برگه دانلود شد");
+      pushToast("خروجی کامل اطلاعات (Excel با ۱۴ برگه) دانلود شد");
     } catch {
       pushToast("خروجی Excel ناموفق بود", "danger");
     } finally {
@@ -141,13 +144,13 @@ export default function ReportsPage() {
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button onClick={doCSV} className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-extrabold text-ink-soft shadow-card transition hover:border-pine-300 hover:text-pine-700 active:scale-[0.97]">
+          <button onClick={doCSV} title="فقط تراکنش‌های منطبق با فیلترهای فعلی" className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-extrabold text-ink-soft shadow-card transition hover:border-pine-300 hover:text-pine-700 active:scale-[0.97]">
             <Download size={14} />
-            CSV
+            CSV گزارش فیلترشده
           </button>
-          <button onClick={doExcel} disabled={exporting} className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-extrabold text-ink-soft shadow-card transition hover:border-pine-300 hover:text-pine-700 active:scale-[0.97] disabled:opacity-50">
+          <button onClick={doExcel} disabled={exporting} title="همه داده‌های ذخیره‌شده در ۱۴ برگه" className="inline-flex items-center gap-1.5 rounded-xl border border-line bg-surface px-4 py-2.5 text-xs font-extrabold text-ink-soft shadow-card transition hover:border-pine-300 hover:text-pine-700 active:scale-[0.97] disabled:opacity-50">
             <FileSpreadsheet size={14} />
-            {exporting ? "در حال ساخت…" : "Excel"}
+            {exporting ? "در حال ساخت…" : "Excel کامل اطلاعات"}
           </button>
           <button onClick={doPrint} className="inline-flex items-center gap-1.5 rounded-xl bg-pine-600 px-4 py-2.5 text-xs font-extrabold text-white shadow-card transition hover:bg-pine-700 active:scale-[0.97]">
             <Printer size={14} />
@@ -592,6 +595,17 @@ export default function ReportsPage() {
           <h1 style={{ fontSize: 22, fontWeight: 900 }}>گزارش سالانه {family.name} — سال {annualYear.toLocaleString("fa-IR")}</h1>
           <p style={{ fontSize: 11, color: "#74867c", marginTop: 4 }}>
             تولیدشده در {formatJalali(todayISO())} · ارز گزارش: {currencyShort} · همه اعداد از تراکنش‌های واقعی
+          </p>
+          <p style={{ fontSize: 11, color: "#74867c", marginTop: 2 }}>
+            فیلترهای فعال: {(() => {
+              const parts: string[] = [];
+              if (filter.memberId === "household") parts.push("فقط کل خانواده");
+              else if (filter.memberId !== "all") parts.push(`عضو: ${memberName(filter.memberId)}`);
+              if (filter.accountId !== "all") parts.push(`حساب: ${accountName(filter.accountId)}`);
+              if (filter.category !== "all") parts.push(`دسته: ${filter.category}`);
+              if (filter.type !== "all") parts.push(`نوع: ${filter.type === "income" ? "درآمد" : filter.type === "expense" ? "هزینه" : "انتقال"}`);
+              return parts.length ? parts.join(" · ") : "همه داده‌ها (بدون فیلتر)";
+            })()}
           </p>
           <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 16, fontSize: 11 }}>
             <thead>

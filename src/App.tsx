@@ -21,7 +21,9 @@ import AboutPage from "./pages/AboutPage";
 import TransactionFormModal from "./components/finance/TransactionFormModal";
 import QuickExpenseModal from "./components/finance/QuickExpenseModal";
 import Toasts from "./components/ui/Toasts";
+import PinLockScreen from "./components/pin/PinLockScreen";
 import { createDemoPlanning } from "./data/demoPlanning";
+import { isPinEnabled } from "./utils/pin";
 import type { PageId, Transaction } from "./types";
 
 /* گزارش‌ها + Recharts فقط هنگام مراجعه بارگذاری می‌شوند */
@@ -48,6 +50,8 @@ function AppContent() {
   const [txModalOpen, setTxModalOpen] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [quickOpen, setQuickOpen] = useState(false);
+  /* قفل محلی — اگر PIN فعال باشد، قبل از نمایش داده‌های مالی قفل نشان داده می‌شود */
+  const [locked, setLocked] = useState<boolean>(() => !!family && isPinEnabled());
 
   /* هشدار ذخیره‌سازی — شکست localStorage هرگز بی‌صدا نماند */
   useEffect(
@@ -86,6 +90,10 @@ function AppContent() {
     ) : (
       <WelcomePage onStart={() => setView("setup")} onDemo={handleDemo} />
     );
+  }
+
+  if (locked) {
+    return <PinLockScreen onUnlock={() => setLocked(false)} />;
   }
 
   return (

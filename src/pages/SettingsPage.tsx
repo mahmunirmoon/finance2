@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Check, Coins, Database, Download, HardDrive, Pencil, RotateCcw, Upload, UserPlus, Users,
+  Check, Coins, Database, Download, HardDrive, HeartPulse, Pencil, RotateCcw, Upload, UserPlus, Users,
 } from "lucide-react";
 import { useFamily } from "../hooks/useFamily";
 import { useFinance } from "../hooks/useFinance";
 import { usePlanning } from "../hooks/usePlanning";
 import MemberFormModal from "../features/members/MemberFormModal";
 import MemberDeleteDialog from "../components/members/MemberDeleteDialog";
+import PinSettings from "../components/pin/PinSettings";
 import { ConfirmDialog } from "../components/ui/Modal";
 import { CURRENCIES } from "../data/currencies";
 import { createDemoPlanning } from "../data/demoPlanning";
 import { exportBackup, parseBackup, type BackupData } from "../utils/export";
+import { checkDataIntegrity, type DataIntegrityIssue } from "../utils/dataIntegrity";
 import { getStorageStatus } from "../utils/safeStorage";
 import { faNum, formatDate, formatJalali } from "../utils/format";
 import type { CurrencyCode, FamilyMember } from "../types";
@@ -31,7 +33,9 @@ export default function SettingsPage() {
   const [confirmDemo, setConfirmDemo] = useState(false);
   const [confirmFinanceDemo, setConfirmFinanceDemo] = useState(false);
   const [confirmReset, setConfirmReset] = useState(false);
+  const [confirmExportPrivacy, setConfirmExportPrivacy] = useState(false);
   const [pendingBackup, setPendingBackup] = useState<BackupData | null>(null);
+  const [healthIssues, setHealthIssues] = useState<DataIntegrityIssue[] | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -69,13 +73,27 @@ export default function SettingsPage() {
     savingsContributions: planning.savingsContributions,
   });
 
+  /* قبل از خروجی، هشدار حریم خصوصی نمایش داده می‌شود */
   const doExportBackup = () => {
+    setConfirmExportPrivacy(true);
+  };
+
+  const confirmExportBackup = () => {
+    setConfirmExportPrivacy(false);
     try {
       exportBackup(collectBackup());
       pushToast("فایل پشتیبان دانلود شد");
     } catch {
       pushToast("پشتیبان‌گیری ناموفق بود", "danger");
     }
+  };
+
+  /* بررسی سلامت اطلاعات — بدون تغییر داده */
+  const runHealthCheck = () => {
+    const issues = checkDataIntegrity(collectBackup());
+    setHealthIssues(issues);
+    if (issues.length === 0) pushToast("اطلاعات سالم است");
+    else pushToast(`${faNum(issues.length)} مورد نیازمند بررسی پیدا شد`, "info");
   };
 
   const onImportFile = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -96,9 +114,9 @@ export default function SettingsPage() {
   };
 
   const applyBackup = (data: BackupData) => {
-    restoreFamily(data.family);
-    setFinanceData(data.accounts, data.transactions);
-    planning.restorePlanning({
+    /* پشتیبان‌گیری خودکار از داده فعلی برای بازگردانی در صورت شکست */
+    const snapshot = collectBackup();
+    const planningState = {
       budgets: data.budgets,
       debts: data.debts,
       receivables: data.receivables,
@@ -109,8 +127,30 @@ export default function SettingsPage() {
       financialPlanItems: data.financialPlanItems,
       savingsGoals: data.savingsGoals,
       savingsContributions: data.savingsContributions,
-    });
-    pushToast("پشتیبان با موفقیت بازیابی شد");
+    };
+    try {
+      restoreFamily(data.family);
+      setFinanceData(data.accounts, data.transactions);
+      planning.restorePlanning(planningState);
+      pushToast("بازیابی با موفقیت انجام شد");
+    } catch {
+      /* بازگردانی داده قبلی — هیچ‌گاه حالت نیمه‌واردشده باقی نماند */
+      restoreFamily(snapshot.family);
+      setFinanceData(snapshot.accounts, snapshot.transactions);
+      planning.restorePlanning({
+        budgets: snapshot.budgets,
+        debts: snapshot.debts,
+        receivables: snapshot.receivables,
+        installmentPlans: snapshot.installmentPlans,
+        installmentItems: snapshot.installmentItems,
+        recurringPayments: snapshot.recurringPayments,
+        financialPlans: snapshot.financialPlans,
+        financialPlanItems: snapshot.financialPlanItems,
+        savingsGoals: snapshot.savingsGoals,
+        savingsContributions: snapshot.savingsContributions,
+      });
+      pushToast("فایل پشتیبان معتبر نیست و هیچ داده‌ای تغییر نکرد.", "danger");
+    }
   };
 
   return (
@@ -258,6 +298,44 @@ export default function SettingsPage() {
         </button>
       </section>
 
+      {/* بررسی سلامت اطلاعات */}
+      <section className="animate-fade-up rounded-2xl border border-line bg-surface p-5 shadow-card sm:p-6">
+        <div className="flex items-center gap-3">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-pine-50 text-pine-600"><HeartPulse size={16} /></span>
+          <div>
+            <h2 className="text-base font-extrabold text-ink">بررسی سلامت اطلاعات</h2>
+            <p className="text-[11px] text-mute">ارجاع‌های شکسته، آیدی‌های تکراری و داده‌های نامعتبر را شناسایی می‌کند.</p>
+          </div>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <button onClick={runHealthCheck} className="inline-flex items-center gap-2 rounded-xl bg-pine-600 px-5 py-3 text-xs font-extrabold text-white shadow-card transition hover:bg-pine-700 active:scale-[0.97]">
+            <HeartPulse size={15} />
+            بررسی الان
+          </button>
+          {healthIssues !== null && healthIssues.length === 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1.5 text-xs font-extrabold text-success">
+              <Check size={14} strokeWidth={3} />
+              اطلاعات سالم است
+            </span>
+          )}
+        </div>
+        {healthIssues !== null && healthIssues.length > 0 && (
+          <ul className="mt-4 space-y-2">
+            {healthIssues.map((iss) => (
+              <li key={iss.id} className={`flex items-start gap-2.5 rounded-xl border px-3.5 py-2.5 text-xs font-bold leading-5 ${
+                iss.severity === "error" ? "border-danger/30 bg-danger-soft text-danger" : "border-saffron-300 bg-saffron-50 text-saffron-700"
+              }`}>
+                <span className="mt-0.5 shrink-0">[{iss.entity}]</span>
+                <span>{iss.message}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* قفل برنامه */}
+      <PinSettings />
+
       {/* مودال‌ها */}
       <MemberFormModal open={formOpen} member={editing} onClose={() => setFormOpen(false)} />
 
@@ -318,6 +396,16 @@ export default function SettingsPage() {
         onConfirm={() => {
           if (pendingBackup) applyBackup(pendingBackup);
         }}
+      />
+
+      <ConfirmDialog
+        open={confirmExportPrivacy}
+        onClose={() => setConfirmExportPrivacy(false)}
+        title="خروجی فایل پشتیبان"
+        message="این فایل شامل اطلاعات مالی خانواده است. آن را در محل امن نگهداری کنید. فایل به‌صورت متن ساده (JSON) ذخیره می‌شود و رمزنگاری نشده است."
+        confirmLabel="دانلود فایل"
+        cancelLabel="انصراف"
+        onConfirm={confirmExportBackup}
       />
     </div>
   );
