@@ -4,13 +4,13 @@ import { useFamily } from "../hooks/useFamily";
 import { MemberRow } from "../features/members/MemberCards";
 import MemberFormModal from "../features/members/MemberFormModal";
 import MemberProfileModal from "../features/members/MemberProfileModal";
-import { ConfirmDialog } from "../components/ui/Modal";
+import MemberDeleteDialog from "../components/members/MemberDeleteDialog";
 import EmptyState from "../components/ui/EmptyState";
 import { faNum } from "../utils/format";
 import type { FamilyMember } from "../types";
 
 export default function MembersPage() {
-  const { family, removeMember, pushToast } = useFamily();
+  const { family } = useFamily();
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<FamilyMember | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
@@ -80,19 +80,7 @@ export default function MembersPage() {
         }}
       />
       <MemberFormModal open={formOpen} member={editing} onClose={() => setFormOpen(false)} />
-      <ConfirmDialog
-        open={deleting !== null}
-        onClose={() => setDeleting(null)}
-        title="حذف عضو"
-        message={deleting ? `آیا از حذف «${deleting.name}» مطمئن هستید؟ این عمل قابل بازگشت نیست و نیازهای ثبت‌شده او نیز حذف می‌شود.` : ""}
-        confirmLabel="حذف شود"
-        onConfirm={() => {
-          if (deleting) {
-            removeMember(deleting.id);
-            pushToast(`«${deleting.name}» از خانواده حذف شد`, "danger");
-          }
-        }}
-      />
+      <MemberDeleteDialog member={deleting} onClose={() => setDeleting(null)} />
     </div>
   );
 }

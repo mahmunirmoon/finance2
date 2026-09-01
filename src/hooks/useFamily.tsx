@@ -22,6 +22,9 @@ interface FamilyContextValue {
   addMember: (draft: MemberDraft) => void;
   updateMember: (id: string, draft: MemberDraft) => void;
   removeMember: (id: string) => void;
+  /** بایگانی عضو — سوابق مالی نامش را حفظ می‌کنند، از فهرست‌های فعال پنهان می‌شود */
+  archiveMember: (id: string) => void;
+  restoreMember: (id: string) => void;
   loadDemoFamily: () => Family;
   /** بازیابی کامل خانواده از فایل پشتیبان (Mission 5) */
   restoreFamily: (family: Family) => void;
@@ -102,6 +105,22 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
     setFamily((prev) => (prev ? { ...prev, members: prev.members.filter((m) => m.id !== id) } : prev));
   }, []);
 
+  const archiveMember = useCallback((id: string) => {
+    setFamily((prev) =>
+      prev
+        ? { ...prev, members: prev.members.map((m) => (m.id === id ? { ...m, isArchived: true, archivedAt: new Date().toISOString() } : m)) }
+        : prev
+    );
+  }, []);
+
+  const restoreMember = useCallback((id: string) => {
+    setFamily((prev) =>
+      prev
+        ? { ...prev, members: prev.members.map((m) => (m.id === id ? { ...m, isArchived: false, archivedAt: undefined } : m)) }
+        : prev
+    );
+  }, []);
+
   const loadDemoFamily = useCallback((): Family => {
     const fam = createDemoFamily();
     setFamily(fam);
@@ -119,10 +138,10 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       family, toasts, pushToast, dismissToast, createFamily, renameFamily, updateFamilyCurrency,
-      addMember, updateMember, removeMember, loadDemoFamily, restoreFamily, resetAll,
+      addMember, updateMember, removeMember, archiveMember, restoreMember, loadDemoFamily, restoreFamily, resetAll,
     }),
     [family, toasts, pushToast, dismissToast, createFamily, renameFamily, updateFamilyCurrency,
-      addMember, updateMember, removeMember, loadDemoFamily, restoreFamily, resetAll]
+      addMember, updateMember, removeMember, archiveMember, restoreMember, loadDemoFamily, restoreFamily, resetAll]
   );
 
   return <FamilyContext.Provider value={value}>{children}</FamilyContext.Provider>;

@@ -1,4 +1,5 @@
 import type { Family } from "../types";
+import { safeSetItem } from "../utils/safeStorage";
 
 const STORAGE_KEY = "ffm.family.v1";
 
@@ -18,9 +19,7 @@ export function loadFamily(): Family | null {
 }
 
 export function saveFamily(family: Family): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(family));
-  } catch { /* ignore */ }
+  safeSetItem(STORAGE_KEY, JSON.stringify(family));
 }
 
 export function clearFamily(): void {

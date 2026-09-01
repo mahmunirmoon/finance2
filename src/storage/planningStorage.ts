@@ -2,6 +2,7 @@ import type {
   Budget, Debt, FinancialPlan, FinancialPlanItem, InstallmentItem, InstallmentPlan,
   Receivable, RecurringPayment, SavingsContribution, SavingsGoal,
 } from "../types";
+import { safeSetItem } from "../utils/safeStorage";
 
 /** کلیدهای نسخه‌بندی‌شده — داده‌های Mission 1 و 2 دست‌نخورده می‌مانند */
 const KEYS = {
@@ -29,7 +30,7 @@ function load<T>(key: string): T[] {
 }
 
 function save(key: string, data: unknown): void {
-  try { localStorage.setItem(key, JSON.stringify(data)); } catch { /* ignore */ }
+  safeSetItem(key, JSON.stringify(data));
 }
 
 export const planningStorage = {

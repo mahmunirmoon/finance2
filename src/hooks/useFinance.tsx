@@ -28,6 +28,8 @@ interface FinanceContextValue {
   loadDemoFinance: (family: Family) => { accounts: Account[]; transactions: Transaction[] };
   /** جایگزینی کامل داده مالی (Demo یکپارچه / بازیابی پشتیبان) */
   setFinanceData: (accounts: Account[], transactions: Transaction[]) => void;
+  /** جابه‌جایی ارجاع عضو در تراکنش‌ها — برای جلوگیری از داده یتیم هنگام حذف عضو */
+  reassignMember: (fromId: string, toId: string | null) => void;
 }
 
 const FinanceContext = createContext<FinanceContextValue | null>(null);
@@ -101,6 +103,13 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
     setTransactions((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const reassignMember = useCallback((fromId: string, toId: string | null) => {
+    const target = toId ?? undefined;
+    setTransactions((prev) =>
+      prev.map((t) => (t.memberId === fromId ? { ...t, memberId: target, updatedAt: new Date().toISOString() } : t))
+    );
+  }, []);
+
   const loadDemoFinance = useCallback((fam: Family) => {
     const demo = createDemoFinance(fam);
     setAccounts(demo.accounts);
@@ -116,10 +125,10 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       accounts, transactions, balances, accountById, addAccount, updateAccount, deleteAccount,
-      addTransaction, updateTransaction, deleteTransaction, loadDemoFinance, setFinanceData,
+      addTransaction, updateTransaction, deleteTransaction, loadDemoFinance, setFinanceData, reassignMember,
     }),
     [accounts, transactions, balances, accountById, addAccount, updateAccount, deleteAccount,
-      addTransaction, updateTransaction, deleteTransaction, loadDemoFinance, setFinanceData]
+      addTransaction, updateTransaction, deleteTransaction, loadDemoFinance, setFinanceData, reassignMember]
   );
 
   return <FinanceContext.Provider value={value}>{children}</FinanceContext.Provider>;

@@ -1,5 +1,6 @@
-import { lazy, Suspense, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 import { FamilyProvider, useFamily } from "./hooks/useFamily";
+import { onStorageFailure } from "./utils/safeStorage";
 import { FinanceProvider, useFinance } from "./hooks/useFinance";
 import { PlanningProvider, usePlanning } from "./hooks/usePlanning";
 import WelcomePage from "./pages/WelcomePage";
@@ -47,6 +48,15 @@ function AppContent() {
   const [txModalOpen, setTxModalOpen] = useState(false);
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
   const [quickOpen, setQuickOpen] = useState(false);
+
+  /* هشدار ذخیره‌سازی — شکست localStorage هرگز بی‌صدا نماند */
+  useEffect(
+    () =>
+      onStorageFailure(() => {
+        pushToast("ذخیره اطلاعات انجام نشد. فضای ذخیره مرورگر یا تنظیمات آن را بررسی کنید.", "danger");
+      }),
+    [pushToast]
+  );
 
   const openNewTransaction = () => {
     setEditingTx(null);

@@ -63,19 +63,26 @@ export default function ReportsPage() {
   const memberName = (id?: string) => (id ? family?.members.find((m) => m.id === id)?.name ?? "" : "کل خانواده");
   const accountName = (id: string) => accounts.find((a) => a.id === id)?.name ?? "—";
 
+  /* ── تک‌خط لوله فیلتر گزارش: همه بخش‌ها از همین دو مجموعه می‌خوانند ──
+     filtered    = با بازه زمانی (برای خلاصه‌های دوره‌ای: ماهانه/دسته/عضو)
+     filteredND  = بدون بازه زمانی (برای بخش‌هایی که دوره خودشان را دارند:
+                   نمودار روند، بودجه، برنامه‌ها، پس‌انداز، تعهدات، گزارش سالانه)
+     هر دو، فیلتر عضو/حساب/دسته/ارز/نوع را مشترک اعمال می‌کنند. */
   const filtered = useMemo(() => applyReportFilter(transactions, filter), [transactions, filter]);
-  const series = useMemo(() => getMonthlySeries(transactions, filter.range === "3m" ? 3 : filter.range === "6m" ? 6 : 6, filter.currency), [transactions, filter.range, filter.currency]);
+  const filteredND = useMemo(() => applyReportFilter(transactions, filter, { skipRange: true }), [transactions, filter]);
+  const seriesMonths = filter.range === "3m" ? 3 : filter.range === "6m" ? 6 : 6;
+  const series = useMemo(() => getMonthlySeries(filteredND, seriesMonths, filter.currency), [filteredND, seriesMonths, filter.currency]);
   const categoryData = useMemo(() => getCategoryBreakdown(filtered, filter.currency), [filtered, filter.currency]);
   const memberData = useMemo(() => getMemberBreakdown(filtered, filter.currency, memberName), [filtered, filter.currency, memberName]);
   const monthly = useMemo(() => getMonthlySummary(filtered, filter.currency, memberName), [filtered, filter.currency, memberName]);
   const budgetPerf = useMemo(
-    () => getBudgetPerformance(planning.budgets.filter((b) => b.currency === filter.currency), transactions),
-    [planning.budgets, transactions, filter.currency]
+    () => getBudgetPerformance(planning.budgets.filter((b) => b.currency === filter.currency), filteredND),
+    [planning.budgets, filteredND, filter.currency]
   );
-  const planPerf = useMemo(() => getPlanPerformance(planning.financialPlans, planning.financialPlanItems, transactions), [planning, transactions]);
-  const savingsPerf = useMemo(() => getSavingsPerformance(planning.savingsGoals, planning.savingsContributions, transactions), [planning, transactions]);
-  const obligations = useMemo(() => getObligationSummary(planning.debts, planning.receivables, transactions), [planning, transactions]);
-  const annual = useMemo(() => getAnnualSummary(transactions, annualYear, filter.currency, memberName), [transactions, annualYear, filter.currency, memberName]);
+  const planPerf = useMemo(() => getPlanPerformance(planning.financialPlans, planning.financialPlanItems, filteredND), [planning, filteredND]);
+  const savingsPerf = useMemo(() => getSavingsPerformance(planning.savingsGoals, planning.savingsContributions, filteredND), [planning, filteredND]);
+  const obligations = useMemo(() => getObligationSummary(planning.debts, planning.receivables, filteredND), [planning, filteredND]);
+  const annual = useMemo(() => getAnnualSummary(filteredND, annualYear, filter.currency, memberName), [filteredND, annualYear, filter.currency, memberName]);
   const insights = useMemo(() => getAnnualInsights(annual, filter.currency), [annual, filter.currency]);
   const availableYears = useMemo(() => {
     const years = new Set<number>([now.jy]);
