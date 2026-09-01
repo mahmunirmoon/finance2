@@ -1,5 +1,7 @@
 import type { Account, Transaction } from "../types";
 
+import { safeSetItem } from "../utils/safeStorage";
+
 const ACCOUNTS_KEY = "ffm.accounts.v1";
 const TRANSACTIONS_KEY = "ffm.transactions.v1";
 
@@ -15,7 +17,7 @@ export function loadAccounts(): Account[] {
 }
 
 export function saveAccounts(accounts: Account[]): void {
-  try { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts)); } catch { /* ignore */ }
+  safeSetItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 }
 
 export function loadTransactions(): Transaction[] {
@@ -30,7 +32,7 @@ export function loadTransactions(): Transaction[] {
 }
 
 export function saveTransactions(transactions: Transaction[]): void {
-  try { localStorage.setItem(TRANSACTIONS_KEY, JSON.stringify(transactions)); } catch { /* ignore */ }
+  safeSetItem(TRANSACTIONS_KEY, JSON.stringify(transactions));
 }
 
 export function clearFinanceStorage(): void {

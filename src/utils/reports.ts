@@ -80,8 +80,17 @@ function inReportRange(dateISO: string, f: ReportFilter): boolean {
   }
 }
 
-/** اعمال فیلتر گزارش روی تراکنش‌ها */
-export function applyReportFilter(transactions: Transaction[], f: ReportFilter): Transaction[] {
+/**
+ * اعمال فیلتر گزارش روی تراکنش‌ها — تنها نقطه فیلتر گزارش.
+ * همه بخش‌های گزارش باید از خروجی این تابع استفاده کنند تا اعداد یکسان بمانند.
+ * `skipRange` برای بخش‌هایی است که دوره زمانیِ خودشان را دارند (بودجه، برنامه، سالانه):
+ * در این حالت فیلتر عضو/حساب/دسته/ارز/نوع اعمال می‌شود ولی بازه زمانیِ گزارش خیر.
+ */
+export function applyReportFilter(
+  transactions: Transaction[],
+  f: ReportFilter,
+  opts?: { skipRange?: boolean }
+): Transaction[] {
   return transactions.filter((t) => {
     if (t.currency !== f.currency) return false;
     if (f.type !== "all" && t.type !== f.type) return false;
@@ -89,7 +98,7 @@ export function applyReportFilter(transactions: Transaction[], f: ReportFilter):
     if (f.memberId !== "all" && f.memberId !== "household" && t.memberId !== f.memberId) return false;
     if (f.accountId !== "all" && t.accountId !== f.accountId && t.destinationAccountId !== f.accountId) return false;
     if (f.category !== "all" && t.category !== f.category) return false;
-    if (!inReportRange(t.date, f)) return false;
+    if (!opts?.skipRange && !inReportRange(t.date, f)) return false;
     return true;
   });
 }

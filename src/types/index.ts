@@ -27,6 +27,9 @@ export interface FamilyMember {
   hasPersonalBudget: boolean;
   trackSeparately: boolean;
   needs: NeedItem[];
+  /** بایگانی‌شده: از فهرست‌های فعال حذف می‌شود ولی سوابق مالی نامش را حفظ می‌کنند */
+  isArchived?: boolean;
+  archivedAt?: string;
   createdAt: string;
   updatedAt: string;
 }

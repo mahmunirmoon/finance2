@@ -96,6 +96,12 @@ interface PlanningContextValue extends PlanningState {
   loadDemoPlanning: (bundle: DemoPlanningBundle) => void;
   restorePlanning: (state: PlanningState) => void;
   resetPlanning: () => void;
+  /**
+   * جابه‌جایی ارجاع عضو در همه موجودیت‌های برنامه‌ریزی.
+   * `toId === null` یعنی تبدیل به «کل خانواده» (memberId حذف می‌شود).
+   * برای جلوگیری از داده یتیم هنگام حذف/بایگانی عضو استفاده می‌شود.
+   */
+  reassignMember: (fromId: string, toId: string | null) => void;
 }
 
 const PlanningContext = createContext<PlanningContextValue | null>(null);
@@ -433,6 +439,18 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     setFinancialPlanItems([]); setSavingsGoals([]); setSavingsContributions([]);
   }, []);
 
+  const reassignMember = useCallback((fromId: string, toId: string | null) => {
+    const target = toId ?? undefined;
+    const nowIso = new Date().toISOString();
+    setBudgets((prev) => prev.map((b) => (b.memberId === fromId ? { ...b, memberId: target, updatedAt: nowIso } : b)));
+    setDebts((prev) => prev.map((d) => (d.memberId === fromId ? { ...d, memberId: target, updatedAt: nowIso } : d)));
+    setReceivables((prev) => prev.map((r) => (r.memberId === fromId ? { ...r, memberId: target, updatedAt: nowIso } : r)));
+    setInstallmentPlans((prev) => prev.map((p) => (p.memberId === fromId ? { ...p, memberId: target, updatedAt: nowIso } : p)));
+    setRecurringPayments((prev) => prev.map((r) => (r.memberId === fromId ? { ...r, memberId: target, updatedAt: nowIso } : r)));
+    setFinancialPlans((prev) => prev.map((p) => (p.memberId === fromId ? { ...p, memberId: target, updatedAt: nowIso } : p)));
+    setSavingsGoals((prev) => prev.map((g) => (g.memberId === fromId ? { ...g, memberId: target, updatedAt: nowIso } : g)));
+  }, []);
+
   const value = useMemo<PlanningContextValue>(() => ({
     budgets, debts, receivables, installmentPlans, installmentItems, recurringPayments,
     financialPlans, financialPlanItems, savingsGoals, savingsContributions,
@@ -443,6 +461,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     addFinancialPlan, updateFinancialPlan, deleteFinancialPlan, addPlanItem, updatePlanItem,
     deletePlanItem, recordPlanExpense, addSavingsGoal, updateSavingsGoal, deleteSavingsGoal,
     addSavingsContribution, deleteSavingsContribution, loadDemoPlanning, restorePlanning, resetPlanning,
+    reassignMember,
   }), [
     budgets, debts, receivables, installmentPlans, installmentItems, recurringPayments,
     financialPlans, financialPlanItems, savingsGoals, savingsContributions,
@@ -453,6 +472,7 @@ export function PlanningProvider({ children }: { children: ReactNode }) {
     addFinancialPlan, updateFinancialPlan, deleteFinancialPlan, addPlanItem, updatePlanItem,
     deletePlanItem, recordPlanExpense, addSavingsGoal, updateSavingsGoal, deleteSavingsGoal,
     addSavingsContribution, deleteSavingsContribution, loadDemoPlanning, restorePlanning, resetPlanning,
+    reassignMember,
   ]);
 
   return <PlanningContext.Provider value={value}>{children}</PlanningContext.Provider>;

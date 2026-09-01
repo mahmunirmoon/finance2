@@ -106,17 +106,24 @@ export default function AccountsPage() {
       <ConfirmDialog
         open={deleting !== null}
         onClose={() => setDeleting(null)}
-        title="حذف حساب"
+        title={deleting && (txCountByAccount[deleting.id] ?? 0) > 0 ? "بایگانی حساب" : "حذف حساب"}
         message={
           deleting
-            ? `آیا از حذف «${deleting.name}» (${getAccountTypeLabel(deleting)}) مطمئن هستید؟ همه تراکنش‌های این حساب نیز حذف می‌شوند و این عمل قابل بازگشت نیست.`
+            ? (txCountByAccount[deleting.id] ?? 0) > 0
+              ? `حساب «${deleting.name}» دارای ${faNum(txCountByAccount[deleting.id] ?? 0)} تراکنش است. برای حفظ سوابق مالی، به‌جای حذف، بایگانی (غیرفعال) می‌شود و نام آن در گزارش‌های گذشته باقی می‌ماند.`
+              : `حساب «${deleting.name}» هیچ تراکنشی ندارد. آیا از حذف دائمی آن مطمئن هستید؟`
             : ""
         }
-        confirmLabel="حذف حساب و تراکنش‌ها"
+        confirmLabel={deleting && (txCountByAccount[deleting.id] ?? 0) > 0 ? "بایگانی حساب" : "حذف حساب"}
         onConfirm={() => {
-          if (deleting) {
-            const affected = deleteAccount(deleting.id);
-            pushToast(`حساب حذف شد (${faNum(affected)} تراکنش وابسته پاک شد)`, "danger");
+          if (!deleting) return;
+          const affected = txCountByAccount[deleting.id] ?? 0;
+          if (affected > 0) {
+            updateAccount(deleting.id, { isActive: false });
+            pushToast(`حساب «${deleting.name}» بایگانی شد — سوابق مالی حفظ شد`, "info");
+          } else {
+            deleteAccount(deleting.id);
+            pushToast("حساب حذف شد", "danger");
           }
         }}
       />

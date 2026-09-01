@@ -6,16 +6,18 @@ import { useFamily } from "../hooks/useFamily";
 import { useFinance } from "../hooks/useFinance";
 import { usePlanning } from "../hooks/usePlanning";
 import MemberFormModal from "../features/members/MemberFormModal";
+import MemberDeleteDialog from "../components/members/MemberDeleteDialog";
 import { ConfirmDialog } from "../components/ui/Modal";
 import { CURRENCIES } from "../data/currencies";
 import { createDemoPlanning } from "../data/demoPlanning";
 import { exportBackup, parseBackup, type BackupData } from "../utils/export";
-import { faNum, formatDate } from "../utils/format";
+import { getStorageStatus } from "../utils/safeStorage";
+import { faNum, formatDate, formatJalali } from "../utils/format";
 import type { CurrencyCode, FamilyMember } from "../types";
 
 export default function SettingsPage() {
   const {
-    family, renameFamily, updateFamilyCurrency, removeMember, loadDemoFamily,
+    family, renameFamily, updateFamilyCurrency, loadDemoFamily,
     restoreFamily, resetAll, pushToast,
   } = useFamily();
   const { loadDemoFinance, setFinanceData, accounts, transactions } = useFinance();
@@ -259,19 +261,7 @@ export default function SettingsPage() {
       {/* مودال‌ها */}
       <MemberFormModal open={formOpen} member={editing} onClose={() => setFormOpen(false)} />
 
-      <ConfirmDialog
-        open={deleting !== null}
-        onClose={() => setDeleting(null)}
-        title="حذف عضو"
-        message={deleting ? `آیا از حذف «${deleting.name}» مطمئن هستید؟ این عمل قابل بازگشت نیست.` : ""}
-        confirmLabel="حذف شود"
-        onConfirm={() => {
-          if (deleting) {
-            removeMember(deleting.id);
-            pushToast(`«${deleting.name}» حذف شد`, "danger");
-          }
-        }}
-      />
+      <MemberDeleteDialog member={deleting} onClose={() => setDeleting(null)} />
 
       <ConfirmDialog
         open={confirmDemo}
