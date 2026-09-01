@@ -1,4 +1,4 @@
-import { Check, Code2, Database, Flag, GraduationCap, HeartHandshake, Layers, MapPin, Phone, ShieldCheck, Sparkles, Users } from "lucide-react";
+import { Check, Code2, Database, Flag, GraduationCap, HeartHandshake, Layers, Phone, ShieldCheck, Sparkles, Users } from "lucide-react";
 import Logo from "../layout/Logo";
 import { faNum } from "../utils/format";
 
@@ -56,17 +56,13 @@ export default function AboutPage() {
               درباره ما · طراحی و برنامه‌نویسی
             </p>
             <h2 className="font-display mt-2.5 text-3xl leading-tight text-white sm:text-4xl">
-              آقای نریمان مبارک
+              نریمان
             </h2>
             <p className="mt-2 max-w-md text-[13px] font-semibold leading-6 text-pine-100/90">
-              این برنامه وب‌اپ توسط ایشان، از آبادان و از دانشجویان سرکار خانم دکتر آقایی،
+              این برنامه وب‌اپ توسط نریمان، از دانشجویان سرکار خانم دکتر آقایی،
               طراحی و برنامه‌نویسی شده است.
             </p>
             <div className="mt-3.5 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] font-extrabold text-pine-200">
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin size={13} className="text-saffron-300" />
-                آبادان
-              </span>
               <span className="inline-flex items-center gap-1.5">
                 <GraduationCap size={13} className="text-saffron-300" />
                 از دانشجویان سرکار خانم دکتر آقایی
