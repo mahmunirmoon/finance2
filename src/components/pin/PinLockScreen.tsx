@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Lock, ShieldAlert } from "lucide-react";
-import { verifyPin, loadPinRecord } from "../../utils/pin";
+import { Lock, ShieldAlert, Clock } from "lucide-react";
+import { verifyPin, loadPinRecord, isLockedOut, getLockRemainingTime } from "../../utils/pin";
 import Logo from "../../layout/Logo";
 
 interface PinLockScreenProps {
@@ -12,10 +12,30 @@ export default function PinLockScreen({ onUnlock }: PinLockScreenProps) {
   const [pin, setPin] = useState("");
   const [error, setError] = useState(false);
   const [shake, setShake] = useState(false);
+  const [lockRemaining, setLockRemaining] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
+  }, []);
+
+  // Check lock status periodically
+  useEffect(() => {
+    const rec = loadPinRecord();
+    if (rec && isLockedOut(rec)) {
+      const updateLockStatus = () => {
+        const remaining = getLockRemainingTime(rec);
+        setLockRemaining(remaining);
+        if (remaining <= 0) {
+          setLockRemaining(0);
+        }
+      };
+      updateLockStatus();
+      const interval = setInterval(updateLockStatus, 1000);
+      return () => clearInterval(interval);
+    } else {
+      setLockRemaining(0);
+    }
   }, []);
 
   const submit = async () => {
@@ -24,6 +44,16 @@ export default function PinLockScreen({ onUnlock }: PinLockScreenProps) {
       onUnlock();
       return;
     }
+    
+    // Check if locked out
+    if (isLockedOut(rec)) {
+      setError(true);
+      setShake(true);
+      setTimeout(() => setShake(false), 400);
+      inputRef.current?.focus();
+      return;
+    }
+    
     const ok = await verifyPin(pin, rec);
     if (ok) {
       onUnlock();
@@ -33,8 +63,23 @@ export default function PinLockScreen({ onUnlock }: PinLockScreenProps) {
       setPin("");
       setTimeout(() => setShake(false), 400);
       inputRef.current?.focus();
+      
+      // Update lock status after failed attempt
+      const updatedRec = loadPinRecord();
+      if (updatedRec && isLockedOut(updatedRec)) {
+        setLockRemaining(getLockRemainingTime(updatedRec));
+      }
     }
   };
+
+  const formatTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
+  const isLocked = lockRemaining > 0;
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4">
@@ -71,17 +116,23 @@ export default function PinLockScreen({ onUnlock }: PinLockScreenProps) {
             if (e.key === "Enter") submit();
           }}
           aria-label="رمز عبور محلی"
+          disabled={isLocked}
           className={`mt-5 w-full rounded-xl border bg-surface px-4 py-3 text-center text-2xl font-black tracking-[0.4em] text-ink transition focus:outline-none focus:ring-2 ${
             error ? "border-danger focus:ring-danger/25" : "border-line focus:border-pine-500 focus:ring-pine-500/25"
-          }`}
-          placeholder="••••"
+          } ${isLocked ? "opacity-50 cursor-not-allowed" : ""}`}
+          placeholder={isLocked ? "قفل است" : "••••"}
         />
-        {error && (
+        {isLocked ? (
+          <p className="mt-2 flex items-center justify-center gap-1.5 text-xs font-bold text-warning">
+            <Clock size={14} />
+            برنامه تا {formatTime(lockRemaining)} دیگر قفل می‌ماند. لطفاً صبر کنید و دوباره تلاش کنید.
+          </p>
+        ) : error ? (
           <p className="mt-2 flex items-center justify-center gap-1.5 text-xs font-bold text-danger">
             <ShieldAlert size={14} />
             رمز اشتباه است؛ دوباره تلاش کنید.
           </p>
-        )}
+        ) : null}
 
         <button
           onClick={submit}
